@@ -15,7 +15,7 @@ struct TexImageStrData
 };
 
 struct GLOption LoadTextures(const char* filename);
-void LoadBlockTextures(GLuint* textures, struct TexImageStrData* data);
+struct GLOption LoadBlockTextures(char* data[6]);
 
 __attribute__((always_inline)) void BindTexture(GLuint* textures, unsigned int id);
 
