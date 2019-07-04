@@ -7,15 +7,13 @@ void autoclose(FILE** fp)
         fclose(*fp);
 }
 
-static void PushTex(struct Blocks* blocks, struct TexImageStrData* texData)
+static struct GLOption PushTex(char* texture_names[6])
 {
-    LoadBlockTextures(&blocks->textures[blocks->length - 1], texData);
-    free(texData->PositiveX);
-    free(texData->PositiveY);
-    free(texData->PositiveZ);
-    free(texData->NegativeX);
-    free(texData->NegativeY);
-    free(texData->NegativeZ);
+    struct GLOption texOpt = LoadBlockTextures(texture_names);
+    for(unsigned int i = 0; i < 6; ++i)
+        free(texture_names[i]);
+    
+    return texOpt;
 }
 
 struct GLOption LoadBlocks(const char* file)
@@ -33,7 +31,7 @@ struct GLOption LoadBlocks(const char* file)
     struct Blocks* blocks = calloc(1, sizeof(struct Blocks));
     blocks->textures = calloc(1, sizeof(GLuint));
     char line[1024];
-    struct TexImageStrData texData = {0};
+    char* texture_names[6] = {0};
 
     while(fgets(line, 1024, fp))
     {
@@ -51,7 +49,13 @@ struct GLOption LoadBlocks(const char* file)
         {
             if(blocks->length)
             {
-                PushTex(blocks, &texData);
+                struct GLOption texOpt = PushTex(texture_names);
+                if(!texOpt.ok)
+                {
+                    return texOpt;
+                }
+
+                blocks->textures[blocks->length - 1] = texOpt.result_gluint;
             }
 
             blocks->length++;
@@ -72,47 +76,54 @@ struct GLOption LoadBlocks(const char* file)
         else if(strcmp(line_type, "right") == 0)
         {
             strtok(line_value, "\n");
-            texData.PositiveX = calloc(strlen(line_value) + 1, sizeof(char));
-            strncpy(texData.PositiveX, line_value, strlen(line_value));
+            texture_names[0] = calloc(strlen(line_value) + 1, sizeof(char));
+            strncpy(texture_names[0], line_value, strlen(line_value));
         }
 
         else if(strcmp(line_type, "left") == 0)
         {
             strtok(line_value, "\n");
-            texData.NegativeX = calloc(strlen(line_value) + 1, sizeof(char));
-            strncpy(texData.NegativeX, line_value, strlen(line_value));
+            texture_names[1] = calloc(strlen(line_value) + 1, sizeof(char));
+            strncpy(texture_names[1], line_value, strlen(line_value));
         }
 
         else if(strcmp(line_type, "top") == 0)
         {
             strtok(line_value, "\n");
-            texData.PositiveY = calloc(strlen(line_value) + 1, sizeof(char));
-            strncpy(texData.PositiveY, line_value, strlen(line_value));
+            texture_names[2] = calloc(strlen(line_value) + 1, sizeof(char));
+            strncpy(texture_names[2], line_value, strlen(line_value));
         }
 
         else if(strcmp(line_type, "bot") == 0)
         {
             strtok(line_value, "\n");
-            texData.NegativeY = calloc(strlen(line_value) + 1, sizeof(char));
-            strncpy(texData.NegativeY, line_value, strlen(line_value));
+            texture_names[3] = calloc(strlen(line_value) + 1, sizeof(char));
+            strncpy(texture_names[3], line_value, strlen(line_value));
         }
 
         else if(strcmp(line_type, "front") == 0)
         {
             strtok(line_value, "\n");
-            texData.PositiveZ = calloc(strlen(line_value) + 1, sizeof(char));
-            strncpy(texData.PositiveZ, line_value, strlen(line_value));
+            texture_names[4] = calloc(strlen(line_value) + 1, sizeof(char));
+            strncpy(texture_names[4], line_value, strlen(line_value));
         }
         
         else if(strcmp(line_type, "back") == 0)
         {
             strtok(line_value, "\n");
-            texData.NegativeZ = calloc(strlen(line_value) + 1, sizeof(char));
-            strncpy(texData.NegativeZ, line_value, strlen(line_value));
+            texture_names[5] = calloc(strlen(line_value) + 1, sizeof(char));
+            strncpy(texture_names[5], line_value, strlen(line_value));
         }
     }
 
-    PushTex(blocks, &texData);
+    struct GLOption texOpt = PushTex(texture_names);
+    if(!texOpt.ok)
+    {
+        return texOpt;
+    }
+
+    blocks->textures[blocks->length - 1] = texOpt.result_gluint;
+
     blocks->length++;
 
     glGenVertexArrays(1, &blocks->vao);
@@ -120,63 +131,131 @@ struct GLOption LoadBlocks(const char* file)
 
     glGenBuffers(1, &blocks->vbo);
     glGenBuffers(1, &blocks->ebo);
-    glGenBuffers(1, &blocks->vbo_textures);
+    // glGenBuffers(1, &blocks->vbo_textures);
 
     float vertices[] = 
     {
-        -0.5f, -0.5f, 0.5f,
         -0.5f, 0.5f, 0.5f,
         -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f, 0.5f,
         -0.5f, 0.5f, -0.5f,
+        0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+        0.5f, 0.5f, -0.5f,
         0.5f, -0.5f, 0.5f,
+        0.5f, -0.5f, -0.5f,
         0.5f, 0.5f, 0.5f,
+        -0.5f, -0.5f, 0.5f,
+        0.5f, -0.5f, 0.5f,
+        0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f, 0.5f,
+        -0.5f, -0.5f, -0.5f,
+        -0.5f, 0.5f, -0.5f,
+        0.5f, 0.5f, 0.5f,
+        0.5f, 0.5f, -0.5f,
+        -0.5f, 0.5f, 0.5f,
+        -0.5f, 0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+        -0.5f, 0.5f, -0.5f,
+        0.5f, 0.5f, -0.5f,
         0.5f, -0.5f, -0.5f,
         0.5f, 0.5f, -0.5f,
+        0.5f, 0.5f, 0.5f,
+        0.5f, -0.5f, 0.5f,
+        0.5f, 0.5f, 0.5f,
+        -0.5f, 0.5f, 0.5f,
+        -0.5f, -0.5f, 0.5f,
+        0.5f, -0.5f, -0.5f,
+        0.5f, -0.5f, 0.5f,
+        -0.5f, -0.5f, 0.5f,
+        -0.5f, 0.5f, -0.5f,
+        -0.5f, 0.5f, 0.5f,
+        0.5f, 0.5f, 0.5f,
     };
 
-    float tex[] = 
-    {
-        1.0f, 0.0f,
-        0.0f, 1.0f,
-        0.0f, 0.0f,
-        1.0f, 0.0f,
-        0.0f, 1.0f,
-        0.0f, 0.0f,
-        1.0f, 0.0f,
-        0.0f, 1.0f,
-        0.0f, 0.0f,
-        1.0f, 0.0f,
-        0.0f, 1.0f,
-        0.0f, 0.0f,
-        1.0f, 0.0f,
-        0.0f, 1.0f,
-        0.0f, 0.0f,
-        1.0f, 1.0f,
-        1.0f, 1.0f,
-        1.0f, 1.0f,
-        1.0f, 1.0f,
-        1.0f, 1.0f,
-    };
+    // float tex[] = 
+    // {
+    //     1.0f, 0.0f,
+    //     0.0f, 1.0f,
+    //     0.0f, 0.0f,
+    //     1.0f, 0.0f,
+    //     0.0f, 1.0f,
+    //     0.0f, 0.0f,
+    //     1.0f, 0.0f,
+    //     0.0f, 1.0f,
+    //     0.0f, 0.0f,
+    //     1.0f, 0.0f,
+    //     0.0f, 1.0f,
+    //     0.0f, 0.0f,
+    //     1.0f, 0.0f,
+    //     0.0f, 1.0f,
+    //     0.0f, 0.0f,
+    //     1.0f, 0.0f,
+    //     0.0f, 1.0f,
+    //     0.0f, 0.0f,
+    //     1.0f, 0.0f,
+    //     1.0f, 1.0f,
+    //     0.0f, 1.0f,
+    //     1.0f, 0.0f,
+    //     1.0f, 1.0f,
+    //     0.0f, 1.0f,
+    //     1.0f, 0.0f,
+    //     1.0f, 1.0f,
+    //     0.0f, 1.0f,
+    //     1.0f, 0.0f,
+    //     1.0f, 1.0f,
+    //     0.0f, 1.0f,
+    //     1.0f, 0.0f,
+    //     1.0f, 1.0f,
+    //     0.0f, 1.0f,
+    //     1.0f, 0.0f,
+    //     1.0f, 1.0f,
+    //     0.0f, 1.0f,
+    // };
 
     unsigned int indices[] = 
     {
-        1, 2, 0,
-        3, 6, 2,
-        7, 4, 6,
-        5, 0, 4,
-        6, 0, 2,
-        3, 5, 7,
-        1, 3, 2,
-        3, 7, 6,
-        7, 5, 4,
-        5, 1, 0,
-        6, 4, 0,
-        3, 1, 5,
+        0, 1, 2,
+        3, 4, 5,
+        6, 7, 8,
+        9, 10, 11,
+        12, 13, 14,
+        15, 16, 17,
+        18, 19, 20,
+        21, 22, 23,
+        24, 25, 26,
+        27, 28, 29,
+        30, 31, 32,
+        33, 34, 35,
     };
+
+    blocks->drawCount = sizeof(indices) / sizeof(indices[0]);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, blocks->ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, blocks->vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(0);
+
+    // glBindBuffer(GL_ARRAY_BUFFER, blocks->vbo_textures);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(tex), tex, GL_STATIC_DRAW);
+    
+    // glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    // glEnableVertexAttribArray(1);
 
     return (struct GLOption)
     {
         .ok = true,
         .result_ptr = blocks,
     };
+}
+
+void DrawBlock(struct Blocks* blocks, unsigned int id)
+{
+    glBindTexture(GL_TEXTURE_CUBE_MAP, blocks->textures[id]);
+    glBindVertexArray(blocks->vao);
+    glDrawElements(GL_TRIANGLES, blocks->drawCount, GL_UNSIGNED_INT, 0);
 }

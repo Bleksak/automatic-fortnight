@@ -13,9 +13,11 @@ struct Blocks
     GLuint ebo;
 
     GLuint* textures;
+    unsigned int drawCount;
     unsigned long long length;
 };
 
 struct GLOption LoadBlocks(const char* file);
+void DrawBlock(struct Blocks* blocks, unsigned int id);
 
 #endif

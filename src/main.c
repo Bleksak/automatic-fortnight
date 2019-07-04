@@ -42,9 +42,16 @@ int main()
 
     // struct Map* map = MapOption.result_ptr;
 
-    // struct Map* map = GenerateMap("name.map", 25);
+    struct Map* map = GenerateMap("name.map", 25);
     
-    struct GLOption objOpt = LoadBlocks("blocks/objects.atf");
+    // struct GLOption objOpt = LoadBlocks("blocks/objects.atf");
+    // if(!objOpt.ok)
+    // {
+    //     fprintf(stderr, "%s\n", objOpt.error_message);
+    //     return 0;
+    // }
+
+    // struct Blocks* blocks = objOpt.result_ptr;
 
     glClearColor(0.15f, 0.0f, 0.15f, 0.0f);
     glEnable(GL_DEPTH_TEST);
@@ -69,9 +76,9 @@ int main()
         // glBindVertexArray(vao);
         // glUseProgram(gl->shader->id);
         // glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
-
-        // DrawBlock(blok, gl->shader);
-        // DrawMap(map, gl->shader);
+        // ShaderSetUniformInt(gl->shader->id, "texSampler", 0);
+        // DrawBlock(blocks, 4);
+        DrawMap(map, gl->shader);
         
         UpdateViewMatrix(gl->camera);
         glUniformMatrix4fv(gl->shader->view_position, 1, GL_FALSE, &gl->camera->view[0][0]);

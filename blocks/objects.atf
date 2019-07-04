@@ -9,6 +9,7 @@ front blocks/textures/bedrock.png
 back blocks/textures/bedrock.png
 
 id 2
+name Stone
 
 right blocks/textures/stone.png
 left blocks/textures/stone.png
@@ -28,6 +29,7 @@ front blocks/textures/cobblestone.png
 back blocks/textures/cobblestone.png
 
 id 4
+name Dirt
 
 right blocks/textures/dirt.png
 left blocks/textures/dirt.png
@@ -37,6 +39,7 @@ front blocks/textures/dirt.png
 back blocks/textures/dirt.png
 
 id 5
+name Grass
 
 right blocks/textures/grass_side.png
 left blocks/textures/grass_side.png

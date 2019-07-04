@@ -105,17 +105,17 @@ static void closef(FILE** fp)
 // }
 
 
-// struct GenBlockPosition
-// {
-//     unsigned int block_id;
-//     unsigned int maxY, minY;
-// };
+struct GenBlockPosition
+{
+    unsigned int block_id;
+    unsigned int maxY, minY;
+};
 
-// static struct GenBlockPosition blocks[] = 
-// {
-//     {GRASS, 64, 59},
-//     {STONE, 58, 1},
-// };
+static struct GenBlockPosition blocks[] = 
+{
+    {GRASS, 64, 59},
+    {STONE, 58, 1},
+};
 
 struct Vector2D {long long x; long long y;};
 
@@ -153,75 +153,97 @@ static struct Vector2D getSpiralCoords(long long i)
     return (struct Vector2D) {x, y};
 }
 
-// static struct Chunk* GenerateChunk(unsigned long long seed, long long chunk_id, const struct Blocks* objects)
-// {
-    // struct Chunk* chunk = calloc(1, sizeof(struct Chunk));
-    // srand(seed);
+static struct Chunk* GenerateChunk(unsigned long long seed, long long chunk_id)
+{
+    struct Chunk* chunk = calloc(1, sizeof(struct Chunk));
+    srand(seed);
 
-    // struct Vector2D dXY = getSpiralCoords(chunk_id);
+    struct Vector2D dXY = getSpiralCoords(chunk_id);
 
-    // unsigned int* block_table = calloc(16 * 16 * 128, sizeof(unsigned int));
+    unsigned int* block_table = calloc(16 * 16 * 128, sizeof(unsigned int));
 
-    // for(unsigned int x = 0; x < 16; ++x)
-    // {
-    //     for(unsigned int z = 0; z < 16; ++z)
-    //     {
-    //         for(int y = 126; y >= 0; --y)
-    //         {
-    //             unsigned int possible_blocks[BLOCK_COUNT] = {0};
-    //             unsigned int possible_block_count = 0;
+    for(unsigned int x = 0; x < 16; ++x)
+    {
+        for(unsigned int z = 0; z < 16; ++z)
+        {
+            for(int y = 126; y >= 0; --y)
+            {
+                unsigned int possible_blocks[BLOCK_COUNT] = {0};
+                unsigned int possible_block_count = 0;
 
-    //             for(unsigned int i = 0; i < sizeof(blocks) / sizeof(blocks[0]); ++i)
-    //             {
-    //                 if(y > blocks[i].maxY)
-    //                     continue;
-    //                 if(y < blocks[i].minY)
-    //                     continue;
+                for(unsigned int i = 0; i < sizeof(blocks) / sizeof(blocks[0]); ++i)
+                {
+                    if(y > blocks[i].maxY)
+                        continue;
+                    if(y < blocks[i].minY)
+                        continue;
                     
-    //                 possible_blocks[possible_block_count++] = blocks[i].block_id;
-    //             }
+                    possible_blocks[possible_block_count++] = blocks[i].block_id;
+                }
 
-    //             if(!possible_block_count)
-    //                 continue;
+                if(!possible_block_count)
+                    continue;
 
-    //             unsigned int the_block = possible_blocks[ ( chunk_id * (seed * rand() + rand() + (x * 16 * 16 + z * 16 + y))) % possible_block_count ];
+                unsigned int the_block = possible_blocks[ ( chunk_id * (seed * rand() + rand() + (x * 16 * 16 + z * 16 + y))) % possible_block_count ];
 
-    //             if(the_block == GRASS && block_table[x * 16 * 16 + z * 16 + y + 1] != AIR)
-    //             {
-    //                 the_block = DIRT;
-    //             }
+                if(the_block == GRASS && block_table[x * 16 * 16 + z * 16 + y + 1] != AIR)
+                {
+                    the_block = DIRT;
+                }
                 
-    //             block_table[x * 16 * 16 + z * 16 + y] = the_block;
+                block_table[x * 16 * 16 + z * 16 + y] = the_block;
 
-    //             chunk->models[the_block] = realloc(chunk->models[the_block], sizeof(mat4) * (chunk->block_counts[the_block] + 1));
-    //             glm_mat4_identity(chunk->models[the_block][chunk->block_counts[the_block]]);
-    //             glm_translate(chunk->models[the_block][chunk->block_counts[the_block]], (vec3){(float) (dXY.x * 16 + x), (float) y, (float) (dXY.y * 16 + z)});
-    //             chunk->block_counts[the_block]++;
-    //         }
-    //     }
-    // }
+                chunk->models[the_block] = realloc(chunk->models[the_block], sizeof(mat4) * (chunk->block_counts[the_block] + 1));
+                glm_mat4_identity(chunk->models[the_block][chunk->block_counts[the_block]]);
+                glm_translate(chunk->models[the_block][chunk->block_counts[the_block]], (vec3){(float) (dXY.x * 16 + x), (float) y, (float) (dXY.y * 16 + z)});
+                chunk->block_counts[the_block]++;
+            }
+        }
+    }
 
-    // free(block_table);
+    free(block_table);
 
-    // return chunk;
-// }
+    return chunk;
+}
 
 struct Map* GenerateMap(const char* name, unsigned long long seed)
 {
     // limit to a few chunks for now
     
-    // struct Map* map = calloc(1, sizeof(struct Map));
-    // map->blocks = LoadBlocks(_LoadObjects("blocks/default.obj").result_ptr);
+    struct Map* map = calloc(1, sizeof(struct Map));
+    map->blocks = LoadBlocks("blocks/objects.atf").result_ptr;
     
-    // for(unsigned int i = 0; i < 8; ++i)
-    // {
-    //     map->chunks = realloc(map->chunks, sizeof(struct Chunk*) * (map->chunkCount + 1));
-    //     map->chunks[map->chunkCount] = GenerateChunk(seed, map->chunkCount, &map->blocks);
-    //     map->chunkCount++;
-    // }
+    for(unsigned int i = 0; i < 8; ++i)
+    {
+        map->chunks = realloc(map->chunks, sizeof(struct Chunk*) * (map->chunkCount + 1));
+        map->chunks[map->chunkCount] = GenerateChunk(seed, map->chunkCount);
+        map->chunkCount++;
+    }
 
-    // return map;
+    return map;
     return 0;
+}
+
+void DrawMap(struct Map* map, struct Shader* shader)
+{
+    glDisable(GL_BLEND);
+    glBindVertexArray(map->blocks->vao);
+
+    for(unsigned long long c = 0; c < map->chunkCount; ++c)
+    {
+        for(unsigned long long block_id = 1; block_id < BLOCK_COUNT; ++block_id) // zero is air
+        {
+            if(!map->chunks[c]->block_counts[block_id])
+                continue;
+            
+            glBindTexture(GL_TEXTURE_CUBE_MAP, map->blocks->textures[block_id - 1]);
+            for(unsigned int i = 0; i < map->chunks[c]->block_counts[block_id]; ++i)
+            {
+                glUniformMatrix4fv(shader->model_position, 1, GL_FALSE, &map->chunks[c]->models[block_id][i][0][0]);
+                glDrawElements(GL_TRIANGLES, map->blocks->drawCount, GL_UNSIGNED_INT, 0);
+            }
+        }
+    }
 }
 
 void SaveMap(struct Map* map);
