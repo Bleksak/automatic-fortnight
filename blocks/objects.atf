@@ -1,0 +1,46 @@
+id 1
+name Bedrock
+
+right blocks/textures/bedrock.png
+left blocks/textures/bedrock.png
+top blocks/textures/bedrock.png
+bot blocks/textures/bedrock.png
+front blocks/textures/bedrock.png
+back blocks/textures/bedrock.png
+
+id 2
+
+right blocks/textures/stone.png
+left blocks/textures/stone.png
+top blocks/textures/stone.png
+bot blocks/textures/stone.png
+front blocks/textures/stone.png
+back blocks/textures/stone.png
+
+id 3
+name Cobblestone
+
+right blocks/textures/cobblestone.png
+left blocks/textures/cobblestone.png
+top blocks/textures/cobblestone.png
+bot blocks/textures/cobblestone.png
+front blocks/textures/cobblestone.png
+back blocks/textures/cobblestone.png
+
+id 4
+
+right blocks/textures/dirt.png
+left blocks/textures/dirt.png
+top blocks/textures/dirt.png
+bot blocks/textures/dirt.png
+front blocks/textures/dirt.png
+back blocks/textures/dirt.png
+
+id 5
+
+right blocks/textures/grass_side.png
+left blocks/textures/grass_side.png
+top blocks/textures/grass.png
+bot blocks/textures/dirt.png
+front blocks/textures/grass_side.png
+back blocks/textures/grass_side.png

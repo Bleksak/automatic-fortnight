@@ -4,20 +4,19 @@
 #include "GL.h"
 #include "include/cglm/cglm.h"
 
-struct Texture
+struct TexImageStrData
 {
-    GLuint id;
-    vec3 ambient, diffuse, specular;
-    float specular_exponent, transparency, optical_density;
-};
-
-struct Textures
-{
-    struct Texture* textures;
-    unsigned long long length;
+    char* PositiveX;
+    char* NegativeX;
+    char* PositiveY;
+    char* NegativeY;
+    char* PositiveZ;
+    char* NegativeZ;
 };
 
 struct GLOption LoadTextures(const char* filename);
-__attribute__((always_inline)) void BindTexture(const struct Textures* textures, unsigned int id);
+void LoadBlockTextures(GLuint* textures, struct TexImageStrData* data);
+
+__attribute__((always_inline)) void BindTexture(GLuint* textures, unsigned int id);
 
 #endif

@@ -2,7 +2,8 @@
 
 #include "GL.h"
 #include "Map.h"
-#include "Block.h"
+
+#include "Blocks.h"
 
 //#include "Map.hpp"
 //#include "Texture.hpp"
@@ -33,49 +34,21 @@ int main()
 
     struct GL* gl = GlOption.result_ptr;
 
-    struct GLOption MapOption = LoadMap("world/world.map");
-    if(!MapOption.ok)
-    {
-        fprintf(stderr, "%s\n", MapOption.error_message);
-    }
+    // struct GLOption MapOption = LoadMap("world/world.map");
+    // if(!MapOption.ok)
+    // {
+    //     fprintf(stderr, "%s\n", MapOption.error_message);
+    // }
 
-    struct Map* map = MapOption.result_ptr;
+    // struct Map* map = MapOption.result_ptr;
+
+    // struct Map* map = GenerateMap("name.map", 25);
     
-    // struct Objects* obj = LoadObjects("blocks/default.obj").result_ptr;
-    // struct Block* blok = CreateBlock((vec3){0.0f, 0.0f, 0.0f}, obj, 1);
-
-    // int nbFrames = 0;
+    struct GLOption objOpt = LoadBlocks("blocks/objects.atf");
 
     glClearColor(0.15f, 0.0f, 0.15f, 0.0f);
     glEnable(GL_DEPTH_TEST);
-    // glEnable(GL_CULL_FACE);
-
-    // GLuint vao, vbo, ebo;
-    // glGenBuffers(1, &vbo);
-    // glGenBuffers(1, &ebo);
-    // glGenVertexArrays(1, &vao);
-
-    // glBindVertexArray(vao);
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-
-    // float vbo_data[] =
-    // {
-    //     1.0f, 0.0f, 0.0f,
-    //     1.0f, 1.0f, 0.0f,
-    //     0.0f, 1.0f, 0.0f,
-    // };
-
-    // unsigned int ebo_data[] = 
-    // {
-    //     0, 1, 2
-    // };
-
-    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ebo_data), ebo_data, GL_STATIC_DRAW);
-    // glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(vbo_data), vbo_data, GL_STATIC_DRAW);
-    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    // glEnableVertexAttribArray(0);
+    glEnable(GL_CULL_FACE);
 
     while(!glfwWindowShouldClose(gl->window))
     {
@@ -98,7 +71,7 @@ int main()
         // glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
 
         // DrawBlock(blok, gl->shader);
-        DrawMap(map, gl->shader);
+        // DrawMap(map, gl->shader);
         
         UpdateViewMatrix(gl->camera);
         glUniformMatrix4fv(gl->shader->view_position, 1, GL_FALSE, &gl->camera->view[0][0]);

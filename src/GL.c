@@ -79,7 +79,7 @@ struct GLOption GLInit(const char* game_name)
     gl->monitor = glfwGetPrimaryMonitor();
     gl->mode = glfwGetVideoMode(gl->monitor);
     
-    struct GLOption wndOption = GameCreateWindow(game_name, gl->monitor, gl->mode, true);
+    struct GLOption wndOption = GameCreateWindow(game_name, gl->monitor, gl->mode, false);
 
     if(!wndOption.ok)
     {
@@ -125,7 +125,7 @@ struct GLOption GLInit(const char* game_name)
     glUseProgram(gl->shader->id);
     
     gl->firstMouse = true;
-    gl->camera = CreateCamera((float[]){0.0f, 0.0f, 1.0f});
+    gl->camera = CreateCamera((float[]){35.0f, 70.0f, 35.0f});
 
     mat4 projection;
     glm_perspective(glm_rad(90.0f), (float) gl->mode->width / (float) gl->mode->height, 0.1f, 100.0f, projection);

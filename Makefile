@@ -3,11 +3,11 @@ CXX := clang-cl
 CFLAGS := /O2 /Wall /c -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-unknown-pragmas -Wno-newline-eof -Wno-unused-macros -Wno-reserved-id-macro -Wno-deprecated-declarations -Wno-c99-extensions
 CPPFLAGS := /O2 /Wall /Wextra /c /GX -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-unknown-pragmas -Wno-newline-eof -Wno-unused-macros -Wno-reserved-id-macro -Wno-deprecated-declarations -Wno-c99-extensions -Wno-zero-as-null-pointer-constant -Wno-old-style-cast
 LPLP:= glfw3.lib opengl32.lib gdi32.lib msvcrtd.lib libcmt.lib Kernel32.lib user32.lib shell32.lib
-LDFLAGS := glfw3.lib opengl32.lib gdi32.lib msvcrtd.lib user32.lib shell32.lib
+LDFLAGS := -fuse-ld=lld -flto glfw3.lib opengl32.lib gdi32.lib msvcrtd.lib user32.lib shell32.lib
 
 LD := clang-cl
 
-RCFLAGS := -O3 -Wall -c -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-unknown-pragmas -Wno-newline-eof -Wno-unused-macros -Wno-reserved-id-macro -Wno-deprecated-declarations -Wno-c99-extensions
+RCFLAGS := -flto -O3 -Wall -c -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-unknown-pragmas -Wno-newline-eof -Wno-unused-macros -Wno-reserved-id-macro -Wno-deprecated-declarations -Wno-c99-extensions
 
 SRCDIR := src
 
