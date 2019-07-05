@@ -4,9 +4,7 @@
 #include "Map.h"
 
 #include "Blocks.h"
-
-//#include "Map.hpp"
-//#include "Texture.hpp"
+#include "Map.h"
 
 static void error_callback(int error_code, const char* error)
 {

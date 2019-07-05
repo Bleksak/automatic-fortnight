@@ -19,6 +19,8 @@ enum BLOCKS
 
 struct Chunk
 {
+    unsigned long long* block_table;
+    unsigned long long block_render_counts[BLOCK_COUNT];
     unsigned long long block_counts[BLOCK_COUNT];
     mat4* models[BLOCK_COUNT];
 };
@@ -31,13 +33,12 @@ struct Map
     const char* map_path;
     vec3 PlayerPosition;
     float pitch, yaw;
-    unsigned long long BlockCount;
 };
 
 struct GLOption LoadMap(const char* map_path);
 struct Map* GenerateMap(const char* name, unsigned long long seed);
 
-// void DrawMap(const struct Map* map, const struct Shader* shader);
+void DrawMap(const struct Map* map, const struct Shader* shader);
 // void SaveMap(struct Map* map);
 // void DestroyMap(struct Map* map);
 
