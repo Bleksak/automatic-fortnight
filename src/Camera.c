@@ -86,7 +86,7 @@ void CameraKeyboardCallback(GLFWwindow* window, int key, int scancode, int actio
     glm_quat_mul_sse2(gl->camera->Orientation, (versor){0.0f, 0.0f, -1.0f, 0.0f}, qF);
     glm_quat_mul_sse2(qF, reverseOrientation, qF);
 
-    vec3 Front = {qF[0], 0.0f, qF[2]};
+    vec3 Front = {qF[0], qF[1], qF[2]};
     vec3 Right;
 
     glm_vec3_crossn(Front, (vec3){0.0f, 1.0f, 0.0f}, Right);
