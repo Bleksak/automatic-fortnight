@@ -6,8 +6,7 @@
 #include "Blocks.h"
 #include "Map.h"
 
-static void error_callback(int error_code, const char* error)
-{
+static void error_callback(int error_code, const char* error) {
     fprintf(stderr, "An error occured: %d : %s\n", error_code, error);
 }
 
@@ -23,14 +22,13 @@ int main()
 #endif
 {
     glfwSetErrorCallback(error_callback);
-    struct GLOption GlOption = GLInit("Automatic Fortnight");
-    if(!GlOption.ok)
-    {
+    struct GLOption GlOption = gl_init("Automatic Fortnight");
+    if(!GlOption.ok) {
         fprintf(stderr, "%s\n", GlOption.error_message);
         return 0;
     }
 
-    struct GL* gl = GlOption.result_ptr;
+    struct GL* gl = unwrap(void*, GlOption);
 
     // struct GLOption MapOption = LoadMap("world/world.map");
     // if(!MapOption.ok)
@@ -40,7 +38,7 @@ int main()
 
     // struct Map* map = MapOption.result_ptr;
 
-    struct Map* map = GenerateMap("name.map", 25);
+    struct Map* map = map_generate("name.map", 25);
     
     // struct GLOption objOpt = LoadBlocks("blocks/objects.atf");
     // if(!objOpt.ok)
@@ -60,8 +58,8 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // GL_DEPTH_BUFFER_BIT
 
         float currentFrame = (float)glfwGetTime();
-        gl->deltaTime = currentFrame - gl->lastTime;
-        gl->lastTime = currentFrame;
+        gl->delta_time = currentFrame - gl->last_time;
+        gl->last_time = currentFrame;
         
         // nbFrames++;
         // if (gl->deltaTime >= 1.0f )
@@ -76,9 +74,9 @@ int main()
         // glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
         // ShaderSetUniformInt(gl->shader->id, "texSampler", 0);
         // DrawBlock(blocks, 4);
-        DrawMap(map, gl->shader);
+        map_draw(map, gl->shader);
         
-        UpdateViewMatrix(gl->camera);
+        camera_update_view_matrix(gl->camera);
         glUniformMatrix4fv(gl->shader->view_position, 1, GL_FALSE, &gl->camera->view[0][0]);
 
         glfwSwapBuffers(gl->window);

@@ -5,19 +5,17 @@
 #include "Shader.h"
 #include "Input.h"
 
-#include "include/cglm/cglm.h"
+#include <cglm/cglm.h>
 
 void game_change_state(struct GL* gl, enum GAME_STATE state)
 {
     gl->state = state;
 
-    switch(state)
-    {
-        case GAME:
-        {
-            glfwSetKeyCallback(gl->window, CameraKeyboardCallback);
-            glfwSetCursorPosCallback(gl->window, CameraMouseCallback);
-            glfwSetMouseButtonCallback(gl->window, CameraMouseBtnCallback);
+    switch(state) {
+        case GAME: {
+            glfwSetKeyCallback(gl->window, camera_keyboard_callback);
+            glfwSetCursorPosCallback(gl->window, camera_mouse_callback);
+            glfwSetMouseButtonCallback(gl->window, camera_mouse_button_callback);
 
             glfwSetInputMode(gl->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
             
@@ -25,8 +23,7 @@ void game_change_state(struct GL* gl, enum GAME_STATE state)
                 glfwSetInputMode(gl->window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
         } break;
 
-        case INVENTORY:
-        {
+        case INVENTORY: {
             glfwSetKeyCallback(gl->window, GameKeyCallbackFun);
             glfwSetCursorPosCallback(gl->window, 0);
             glfwSetMouseButtonCallback(gl->window, GameMouseButtonCallbackFun);
@@ -34,8 +31,7 @@ void game_change_state(struct GL* gl, enum GAME_STATE state)
             glfwSetInputMode(gl->window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
         } break;
 
-        case MENU:
-        {
+        case MENU: {
             glfwSetKeyCallback(gl->window, 0);
             glfwSetCursorPosCallback(gl->window, 0);
             glfwSetMouseButtonCallback(gl->window, 0);
@@ -43,8 +39,7 @@ void game_change_state(struct GL* gl, enum GAME_STATE state)
             glfwSetInputMode(gl->window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         } break;
 
-        case LOAD:
-        {
+        case LOAD: {
             glfwSetKeyCallback(gl->window, 0);
             glfwSetCursorPosCallback(gl->window, 0);
             glfwSetMouseButtonCallback(gl->window, 0);
@@ -52,8 +47,7 @@ void game_change_state(struct GL* gl, enum GAME_STATE state)
             glfwSetInputMode(gl->window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
         } break;
 
-        case GAME_MENU:
-        {
+        case GAME_MENU: {
             glfwSetKeyCallback(gl->window, 0);
             glfwSetCursorPosCallback(gl->window, 0);
             glfwSetMouseButtonCallback(gl->window, 0);
@@ -63,15 +57,9 @@ void game_change_state(struct GL* gl, enum GAME_STATE state)
     }
 }
 
-struct GLOption GLInit(const char* game_name)
-{
-    if(!glfwInit())
-    {
-        return (struct GLOption)
-        {
-            .ok = false,
-            .error_message = "OpenGL initialization failed",
-        };
+struct GLOption gl_init(const char* game_name) {
+    if(!glfwInit()) {
+        return Err("OpenGL initialization failed");
     }
 
     struct GL* gl = (struct GL*)calloc(1, sizeof(struct GL));
@@ -79,53 +67,48 @@ struct GLOption GLInit(const char* game_name)
     gl->monitor = glfwGetPrimaryMonitor();
     gl->mode = glfwGetVideoMode(gl->monitor);
     
-    struct GLOption wndOption = GameCreateWindow(game_name, gl->monitor, gl->mode, false);
+    struct GLOption wndOption = window_create(game_name, gl->monitor, gl->mode, false);
 
-    if(!wndOption.ok)
-    {
+    if(!wndOption.ok) {
         free(gl);
         return wndOption;
     }
 
-    gl->window = (GLFWwindow *) wndOption.result_ptr;
+    gl->window = unwrap(GLFWwindow *, wndOption);
     glfwSetWindowUserPointer(gl->window, gl);
 
-    gl->lastX = 0.0f;
-    gl->lastY = 0.0f;
+    gl->last_mouse_position[0] = 0.0f;
+    gl->last_mouse_position[1] = 0.0f;
 
-    struct GLOption ShaderOption = CreateShader("vertex.glsl", "fragment.glsl");
+    struct GLOption ShaderOption = shader_create("shaders/vertex.glsl", "shaders/fragment.glsl");
 
-    if(!ShaderOption.ok)
-    {
+    if(!ShaderOption.ok) {
         free(gl);
         return ShaderOption;
     }
 
-    gl->shader = ShaderOption.result_ptr;
+    gl->shader = unwrap(struct Shader*, ShaderOption);
 
     GLFWimage img;
     int trash;
-    img.pixels = ReadImage("icons/curs_p.png", &img.width, &img.height, &trash, 0, false);
-    if(!img.pixels)
-    {
+    img.pixels = image_read("icons/curs_p.png", &img.width, &img.height, &trash, 0, false);
+    
+    if(!img.pixels) {
         free(gl);
-        return (struct GLOption)
-        {
-            .ok = false,
-            .error_message = "Failed to load assets",
-        };
+        
+        Err("Failed to load assets");
     }
 
     gl->cursor = glfwCreateCursor(&img, 0, 0);
     glfwSetCursorPos(gl->window, 0.0, 0.0);
-    FreeImage(img.pixels);
+    image_free(img.pixels);
 
     glfwSetCursor(gl->window, gl->cursor);
 
     glUseProgram(gl->shader->id);
     
-    gl->firstMouse = true;
-    gl->camera = CreateCamera((float[]){0.0f, 67.0f, 0.0f});
+    gl->first_mouse = true;
+    gl->camera = camera_create((float[]){0.0f, 67.0f, 0.0f});
 
     mat4 projection;
     glm_perspective(glm_rad(90.0f), (float) gl->mode->width / (float) gl->mode->height, 0.1f, 100.0f, projection);
@@ -134,9 +117,5 @@ struct GLOption GLInit(const char* game_name)
 
     game_change_state(gl, GAME);
 
-    return (struct GLOption)
-    {
-        .ok = true,
-        .result_ptr = gl,
-    };
+    return Ok(gl);
 }

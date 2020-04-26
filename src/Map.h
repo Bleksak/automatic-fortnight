@@ -3,11 +3,10 @@
 
 #include "GL.h"
 
-#include "include/cglm/cglm.h"
+#include <cglm/cglm.h>
 #include "Blocks.h"
 
-enum BLOCKS
-{
+enum BLOCKS {
     AIR,
     BEDROCK,
     STONE,
@@ -17,28 +16,26 @@ enum BLOCKS
     BLOCK_COUNT,
 };
 
-struct Chunk
-{
-    unsigned long long* block_table;
-    unsigned long long block_render_counts[BLOCK_COUNT];
-    unsigned long long block_counts[BLOCK_COUNT];
+struct Chunk {
+    uint64_t* block_table;
+    uint64_t block_render_counts[BLOCK_COUNT];
+    uint64_t block_counts[BLOCK_COUNT];
     mat4* models[BLOCK_COUNT];
 };
 
-struct Map
-{
+struct Map {
     struct Blocks* blocks;
     struct Chunk** chunks;
-    unsigned long long chunkCount;
+    uint64_t chunk_count;
     const char* map_path;
-    vec3 PlayerPosition;
+    vec3 player_position;
     float pitch, yaw;
 };
 
-struct GLOption LoadMap(const char* map_path);
-struct Map* GenerateMap(const char* name, unsigned long long seed);
+struct GLOption map_load(const char* map_path);
+struct Map* map_generate(const char* name, uint64_t seed);
 
-void DrawMap(const struct Map* map, const struct Shader* shader);
+void map_draw(const struct Map* map, const struct Shader* shader);
 // void SaveMap(struct Map* map);
 // void DestroyMap(struct Map* map);
 

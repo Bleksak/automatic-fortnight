@@ -1,28 +1,24 @@
 #include <string.h>
 #include "Blocks.h"
 
-void autoclose(FILE** fp)
-{
+static void autoclose(FILE** fp) {
     if(*fp)
         fclose(*fp);
 }
 
-static struct GLOption PushTex(char* texture_names[6])
-{
-    struct GLOption texOpt = LoadBlockTextures(texture_names);
+static struct GLOption texture_push(char* texture_names[6]) {
+    struct GLOption texOpt = textures_block_load(texture_names);
     for(unsigned int i = 0; i < 6; ++i)
         free(texture_names[i]);
     
     return texOpt;
 }
 
-struct GLOption LoadBlocks(const char* file)
-{
+struct GLOption blocks_load(const char* file) {
     __attribute__((cleanup(autoclose))) FILE* fp = fopen(file, "rb");
-    if(!fp)
-    {
-        return (struct GLOption)
-        {
+
+    if(!fp) {
+        return (struct GLOption) {
             .ok = false,
             .error_message = "Failed to load objects",
         };
@@ -33,29 +29,25 @@ struct GLOption LoadBlocks(const char* file)
     char line[1024];
     char* texture_names[6] = {0};
 
-    while(fgets(line, 1024, fp))
-    {
+    while(fgets(line, 1024, fp)) {
         char line_type[8];
         int offset;
 
-        if(sscanf(line, "%s%n", line_type, &offset) != 1)
-        {
+        if(sscanf(line, "%s%n", line_type, &offset) != 1) {
             continue;
         }
 
         char* line_value = line + offset + 1;
 
-        if(strcmp(line_type, "id") == 0)
-        {
-            if(blocks->length)
-            {
-                struct GLOption texOpt = PushTex(texture_names);
-                if(!texOpt.ok)
-                {
+        if(strcmp(line_type, "id") == 0) {
+            if(blocks->length) {
+                struct GLOption texOpt = texture_push(texture_names);
+                
+                if(!texOpt.ok) {
                     return texOpt;
                 }
 
-                blocks->textures[blocks->length - 1] = texOpt.result_gluint;
+                blocks->textures[blocks->length - 1] = unwrap(GLuint, texOpt);
             }
 
             blocks->length++;
@@ -66,63 +58,55 @@ struct GLOption LoadBlocks(const char* file)
             sscanf(line_value, "%llu", &blocks->ids[blocks->length - 1]);
         }
         
-        else if(strcmp(line_type, "name") == 0)
-        {
+        else if(strcmp(line_type, "name") == 0) {
             strtok(line_value, "\n");
             blocks->names[blocks->length - 1] = calloc(strlen(line_value) + 1, sizeof(char));
             strncpy(blocks->names[blocks->length - 1], line_value, strlen(line_value));
         }
 
-        else if(strcmp(line_type, "right") == 0)
-        {
+        else if(strcmp(line_type, "right") == 0) {
             strtok(line_value, "\n");
             texture_names[0] = calloc(strlen(line_value) + 1, sizeof(char));
             strncpy(texture_names[0], line_value, strlen(line_value));
         }
 
-        else if(strcmp(line_type, "left") == 0)
-        {
+        else if(strcmp(line_type, "left") == 0) {
             strtok(line_value, "\n");
             texture_names[1] = calloc(strlen(line_value) + 1, sizeof(char));
             strncpy(texture_names[1], line_value, strlen(line_value));
         }
 
-        else if(strcmp(line_type, "top") == 0)
-        {
+        else if(strcmp(line_type, "top") == 0) {
             strtok(line_value, "\n");
             texture_names[2] = calloc(strlen(line_value) + 1, sizeof(char));
             strncpy(texture_names[2], line_value, strlen(line_value));
         }
 
-        else if(strcmp(line_type, "bot") == 0)
-        {
+        else if(strcmp(line_type, "bot") == 0) {
             strtok(line_value, "\n");
             texture_names[3] = calloc(strlen(line_value) + 1, sizeof(char));
             strncpy(texture_names[3], line_value, strlen(line_value));
         }
 
-        else if(strcmp(line_type, "front") == 0)
-        {
+        else if(strcmp(line_type, "front") == 0) {
             strtok(line_value, "\n");
             texture_names[4] = calloc(strlen(line_value) + 1, sizeof(char));
             strncpy(texture_names[4], line_value, strlen(line_value));
         }
         
-        else if(strcmp(line_type, "back") == 0)
-        {
+        else if(strcmp(line_type, "back") == 0) {
             strtok(line_value, "\n");
             texture_names[5] = calloc(strlen(line_value) + 1, sizeof(char));
             strncpy(texture_names[5], line_value, strlen(line_value));
         }
     }
 
-    struct GLOption texOpt = PushTex(texture_names);
-    if(!texOpt.ok)
-    {
+    struct GLOption texOpt = texture_push(texture_names);
+    if(!texOpt.ok) {
         return texOpt;
     }
 
-    blocks->textures[blocks->length - 1] = texOpt.result_gluint;
+    blocks->textures[blocks->length - 1] = unwrap(GLuint, texOpt);
 
     blocks->length++;
 
@@ -173,45 +157,7 @@ struct GLOption LoadBlocks(const char* file)
         0.5f, 0.5f, 0.5f,
     };
 
-    // float tex[] = 
-    // {
-    //     1.0f, 0.0f,
-    //     0.0f, 1.0f,
-    //     0.0f, 0.0f,
-    //     1.0f, 0.0f,
-    //     0.0f, 1.0f,
-    //     0.0f, 0.0f,
-    //     1.0f, 0.0f,
-    //     0.0f, 1.0f,
-    //     0.0f, 0.0f,
-    //     1.0f, 0.0f,
-    //     0.0f, 1.0f,
-    //     0.0f, 0.0f,
-    //     1.0f, 0.0f,
-    //     0.0f, 1.0f,
-    //     0.0f, 0.0f,
-    //     1.0f, 0.0f,
-    //     0.0f, 1.0f,
-    //     0.0f, 0.0f,
-    //     1.0f, 0.0f,
-    //     1.0f, 1.0f,
-    //     0.0f, 1.0f,
-    //     1.0f, 0.0f,
-    //     1.0f, 1.0f,
-    //     0.0f, 1.0f,
-    //     1.0f, 0.0f,
-    //     1.0f, 1.0f,
-    //     0.0f, 1.0f,
-    //     1.0f, 0.0f,
-    //     1.0f, 1.0f,
-    //     0.0f, 1.0f,
-    //     1.0f, 0.0f,
-    //     1.0f, 1.0f,
-    //     0.0f, 1.0f,
-    //     1.0f, 0.0f,
-    //     1.0f, 1.0f,
-    //     0.0f, 1.0f,
-    // };
+    //  We don't need texels because they are the same as vertices
 
     unsigned int indices[] = 
     {
@@ -229,7 +175,7 @@ struct GLOption LoadBlocks(const char* file)
         33, 34, 35,
     };
 
-    blocks->drawCount = sizeof(indices) / sizeof(indices[0]);
+    blocks->draw_count = sizeof(indices) / sizeof(indices[0]);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, blocks->ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
@@ -240,22 +186,14 @@ struct GLOption LoadBlocks(const char* file)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
 
-    // glBindBuffer(GL_ARRAY_BUFFER, blocks->vbo_textures);
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(tex), tex, GL_STATIC_DRAW);
-    
-    // glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
-    // glEnableVertexAttribArray(1);
-
-    return (struct GLOption)
-    {
+    return (struct GLOption) {
         .ok = true,
-        .result_ptr = blocks,
+        .result = blocks,
     };
 }
 
-void DrawBlock(struct Blocks* blocks, unsigned int id)
-{
+void block_draw(struct Blocks* blocks, unsigned int id) {
     glBindTexture(GL_TEXTURE_CUBE_MAP, blocks->textures[id]);
     glBindVertexArray(blocks->vao);
-    glDrawElements(GL_TRIANGLES, blocks->drawCount, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, blocks->draw_count, GL_UNSIGNED_INT, 0);
 }

@@ -3,7 +3,7 @@
 
 #include "GL.h"
 
-struct GLOption GameCreateWindow(const char* wndTitle, GLFWmonitor* monitor, const GLFWvidmode* mode, bool fullscreen);
-void GLDestroyWindow(GLFWwindow* wnd);
+struct GLOption window_create(const char* title, GLFWmonitor* monitor, const GLFWvidmode* mode, bool fullscreen);
+void window_destroy(GLFWwindow* wnd);
 
 #endif

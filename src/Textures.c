@@ -5,11 +5,11 @@
 #include "Image.h"
 #include <string.h>
 
-static void closef(FILE** fp)
-{
-    if(*fp)
-        fclose(*fp);
-}
+// static void closef(FILE** fp)
+// {
+//     if(*fp)
+//         fclose(*fp);
+// }
 
 // struct GLOption LoadTextures(const char* filename)
 // {
@@ -120,7 +120,7 @@ static void closef(FILE** fp)
 
 //                 strtok(line_value, "\n"); // remove trailing newline from fgets
 
-//                 unsigned char* data = ReadImage(line_value, &width, &height, &channels, 0, true);
+//                 unsigned char* data = image_read(line_value, &width, &height, &channels, 0, true);
 
 //                 if(!data)
 //                 {
@@ -138,7 +138,7 @@ static void closef(FILE** fp)
 //                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 //                 glGenerateMipmap(GL_TEXTURE_2D);
                 
-//                 FreeImage(data);
+//                 image_free(data);
 //             } break;
 //         }
 //     }
@@ -150,8 +150,7 @@ static void closef(FILE** fp)
 //     };
 // }
 
-struct GLOption LoadBlockTextures(char* data[6])
-{
+struct GLOption textures_block_load(char* data[6]) {
     GLuint texture;
 
     glGenTextures(1, &texture);
@@ -164,31 +163,20 @@ struct GLOption LoadBlockTextures(char* data[6])
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    for(unsigned int i = 0; i < 6; ++i)
-    {
+    for(unsigned int i = 0; i < 6; ++i) {
         int width, height, channels;
-        unsigned char* img_data = ReadImage(data[i], &width, &height, &channels, 0, false);
-        if(!img_data)
-        {
-            return (struct GLOption)
-            {
-                .ok = false,
-                .error_message = "Failed to load textures",
-            };
+        unsigned char* img_data = image_read(data[i], &width, &height, &channels, 0, false);
+        if(!img_data) {
+            return Err("Failed to load textures");
         }
 
         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data);
-        FreeImage(img_data);
+        image_free(img_data);
     }
 
-    return (struct GLOption)
-    {
-        .ok = true,
-        .result_gluint = texture,
-    };
+    return Ok(texture);
 }
 
-__attribute__((always_inline)) void BindTexture(GLuint* textures, unsigned int id)
-{
+__attribute__((always_inline)) void BindTexture(GLuint* textures, unsigned int id) {
     glBindTexture(GL_TEXTURE_CUBE_MAP, textures[id]);
 }

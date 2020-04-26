@@ -4,182 +4,84 @@
 #include <string.h>
 #include <math.h>
 
-static void closef(FILE** fp)
-{
+static void closef(FILE** fp) {
     if(*fp)
         fclose(*fp);
 }
 
-// struct GLOption LoadMap(const char* map_path)
-// {
-//     __attribute__((cleanup(closef))) FILE* fp = fopen(map_path, "r");
-//     if(!fp)
-//     {
-//         return (struct GLOption)
-//         {
-//             .ok = false,
-//             .error_message = "Failed to load map",
-//         };
-//     }
-
-//     struct Map* map = calloc(1, sizeof(struct Map));
-    
-//     char line[1024];
-    
-//     unsigned int current_id = 0;
-
-//     while(fgets(line, 1024, fp))
-//     {
-//         char line_type[8];
-//         int offset;
-
-//         if(sscanf(line, "%s%n", line_type, &offset) != 1)
-//         {
-//             continue;
-//         }
-
-//         char* line_value = (line + offset + 1);
-
-//         switch(line_type[0])
-//         {
-//             case 'X':
-//             {
-//                 sscanf(line_value, "%f", &map->PlayerPosition[0]);
-//             } break;
-
-//             case 'Y':
-//             {
-//                 sscanf(line_value, "%f", &map->PlayerPosition[1]);
-//             } break;
-
-//             case 'Z':
-//             {
-//                 sscanf(line_value, "%f", &map->PlayerPosition[2]);
-//             } break;
-
-//             case 'y':
-//             {
-//                 sscanf(line_value, "%f", &map->yaw);
-//             } break;
-
-//             case 'p':
-//             {
-//                 sscanf(line_value, "%f", &map->pitch);
-//             } break;
-
-//             case 'n':
-//             {
-//                 unsigned int current_count;
-//                 sscanf(line_value, "%u %u", &current_id, &current_count);
-//                 map->blocks = realloc(map->blocks, (map->BlockCount + current_count) * sizeof(struct Block*));
-//             } break;
-
-//             case 'o':
-//             {
-//                 strtok(line_value, "\n");
-
-//                 struct GLOption objOption = LoadObjects(line_value);
-//                 if(!objOption.ok)
-//                 {
-//                     return objOption;
-//                 }
-
-//                 map->ObjectLibrary = realloc(map->ObjectLibrary, (map->ObjectLibLength + 1) * sizeof(struct Objects*));
-//                 map->ObjectLibrary[map->ObjectLibLength++] = objOption.result_ptr;
-//             } break;
-
-//             case 'b':
-//             {
-//                 vec3 position;
-//                 sscanf(line_value, "%f %f %f", &position[0], &position[1], &position[2]);
-//                 map->blocks[map->BlockCount++] = CreateBlock(position, map->ObjectLibrary[map->ObjectLibLength - 1], current_id);
-//             } break;
-//         }
-//     }
-
-//     return (struct GLOption)
-//     {
-//         .ok = true,
-//         .result_ptr = map,
-//     };
-// }
-
-
-struct GenBlockPosition
-{
-    unsigned int block_id;
-    unsigned int maxY, minY;
+struct GenBlockPosition {
+    uint32_t block_id;
+    uint32_t maxY, minY;
 };
 
-static struct GenBlockPosition blocks[] = 
-{
+static struct GenBlockPosition blocks[] =  {
     {GRASS, 65, 59},
     {STONE, 58, 1},
 };
 
-struct Vector2D {long long x; long long y;};
+struct Vector2D {int64_t x; int64_t y;};
 
-static struct Vector2D getSpiralCoords(long long i) {
-    long long index = i + 1;
-    long long s = ((long long)ceil(sqrtf((double)index)) + (((long long)(ceil(sqrtf((double)index))) % 2 + 1) % 2));
-    long long ringIndex = 0;
-    long long p = 1;
+static struct Vector2D spiral_get_coords(int64_t i) {
+    int64_t index = i + 1;
+    int64_t s = ((int64_t)ceil(sqrtf((double)index)) + (((int64_t)(ceil(sqrtf((double)index))) % 2 + 1) % 2));
+    int64_t ringIndex = 0;
+    int64_t p = 1;
     if (s > 1) {
         ringIndex = i - (s - 2) * (s - 2);
         p = s * s - (s - 2) * (s - 2);
     }
 
-    long long ri = (ringIndex + (long long) (s / 2)) % p;
+    int64_t ri = (ringIndex + (int64_t) (s / 2)) % p;
 
-    long long x = 0;
+    int64_t x = 0;
     if (s > 1)
         x = ri < (p / 4) ? ri :
                 (ri <= (p / 4 * 2 - 1) ? (p / 4) :
                         (ri <= (p / 4 * 3) ? ((p / 4 * 3) - ri) :
                                 0));
 
-    long long y = 0;
+    int64_t y = 0;
     if (s > 1)
         y = ri < (p / 4) ? 0 :
                 (ri <= (p / 4 * 2 - 1) ? (ri - (p / 4)) :
                         (ri <= (p / 4 * 3) ? (p / 4) :
                                 (p - ri)));
 
-    x -= (long long) (s / 2);
-    y -= (long long) (s / 2);
+    x -= (int64_t) (s / 2);
+    y -= (int64_t) (s / 2);
 
     return (struct Vector2D){x, y};
 }
 
-static void SetBlockVisible(struct Chunk* chunk, unsigned long long x, unsigned long long y, unsigned long long z, struct Vector2D* dXY)
+static void set_block_visible(struct Chunk* chunk, uint64_t x, uint64_t y, uint64_t z, struct Vector2D* dXY)
 {
-    unsigned int the_block = chunk->block_table[x * 128 * 16 + y * 16 + z];
+    uint32_t the_block = chunk->block_table[x * 128 * 16 + y * 16 + z];
 
     chunk->models[the_block] = realloc(chunk->models[the_block], sizeof(mat4) * (chunk->block_render_counts[the_block] + 1));
     glm_mat4_identity(chunk->models[the_block][chunk->block_render_counts[the_block]]);
-    glm_translate(chunk->models[the_block][chunk->block_render_counts[the_block]], (vec3){(float) (dXY->x * 16 + (long long)x), (float) y, (float) (dXY->y * 16 + (long long)z)});
+    glm_translate(chunk->models[the_block][chunk->block_render_counts[the_block]], (vec3){(float) (dXY->x * 16 + (int64_t)x), (float) y, (float) (dXY->y * 16 + (int64_t)z)});
     chunk->block_render_counts[the_block]++;
 }
 
-static struct Chunk* GenerateChunk(const struct Map* map, unsigned long long seed, long long chunk_id)
+static struct Chunk* chunk_generate(const struct Map* map, uint64_t seed, int64_t chunk_id)
 {
     struct Chunk* chunk = calloc(1, sizeof(struct Chunk));
     srand(seed);
 
-    struct Vector2D dXY = getSpiralCoords(chunk_id);
+    struct Vector2D dXY = spiral_get_coords(chunk_id);
 
-    chunk->block_table = calloc(16 * 16 * 128, sizeof(unsigned long long));
+    chunk->block_table = calloc(16 * 16 * 128, sizeof(uint64_t));
 
-    for(unsigned int x = 0; x < 16; ++x)
+    for(uint32_t x = 0; x < 16; ++x)
     {
-        for(unsigned int z = 0; z < 16; ++z)
+        for(uint32_t z = 0; z < 16; ++z)
         {
-            for(unsigned int y = 0; y < 128; ++y)
+            for(uint32_t y = 0; y < 128; ++y)
             {
-                unsigned int possible_blocks[BLOCK_COUNT] = {0};
-                unsigned int possible_block_count = 0;
+                uint32_t possible_blocks[BLOCK_COUNT] = {0};
+                uint32_t possible_block_count = 0;
 
-                for(unsigned int i = 0; i < sizeof(blocks) / sizeof(blocks[0]); ++i)
+                for(uint32_t i = 0; i < sizeof(blocks) / sizeof(blocks[0]); ++i)
                 {
                     if(y > blocks[i].maxY)
                         continue;
@@ -192,7 +94,7 @@ static struct Chunk* GenerateChunk(const struct Map* map, unsigned long long see
                 if(!possible_block_count)
                     continue;
 
-                unsigned int the_block = possible_blocks[ ( chunk_id * (seed * rand() + rand() + (x * 16 * 16 + z * 16 + y))) % possible_block_count ];
+                uint32_t the_block = possible_blocks[ ( chunk_id * (seed * rand() + rand() + (x * 16 * 16 + z * 16 + y))) % possible_block_count ];
                 
                 chunk->block_table[x * 128 * 16 + y * 16 + z] = the_block;
                 chunk->block_counts[the_block]++;
@@ -201,41 +103,41 @@ static struct Chunk* GenerateChunk(const struct Map* map, unsigned long long see
     }
 
 
-    for(unsigned int x = 0; x < 16; ++x)
+    for(uint32_t x = 0; x < 16; ++x)
     {
-        for(unsigned int z = 0; z < 16; ++z)
+        for(uint32_t z = 0; z < 16; ++z)
         {
-            for(unsigned int y = 0; y < 127; ++y)
+            for(uint32_t y = 0; y < 127; ++y)
             {
                 if(y > 0 && chunk->block_table[x * 128 * 16 + (y-1) * 16 + z] == AIR)
                 {
-                    SetBlockVisible(chunk, x, y, z, &dXY);
+                    set_block_visible(chunk, x, y, z, &dXY);
                 }
                 else if(y < 127 && chunk->block_table[x * 128 * 16 + (y+1) * 16 + z] == AIR)
                 {
-                    SetBlockVisible(chunk, x, y, z, &dXY);
+                    set_block_visible(chunk, x, y, z, &dXY);
                 }
                 else if(z > 0 && chunk->block_table[x * 128 * 16 + y * 16 + z - 1] == AIR)
                 {
-                    SetBlockVisible(chunk, x, y, z, &dXY);
+                    set_block_visible(chunk, x, y, z, &dXY);
                 }
                 else if(z < 15 && chunk->block_table[x * 128 * 16 + y * 16 + z + 1] == AIR)
                 {
-                    SetBlockVisible(chunk, x, y, z, &dXY);
+                    set_block_visible(chunk, x, y, z, &dXY);
                 }
                 else if(x > 0 && chunk->block_table[(x-1) * 128 * 16 + y * 16 + z] == AIR)
                 {
-                    SetBlockVisible(chunk, x, y, z, &dXY);
+                    set_block_visible(chunk, x, y, z, &dXY);
                 }
                 else if(x < 15 && chunk->block_table[(x+1) * 128 * 16 + y * 16 + z] == AIR)
                 {
-                    SetBlockVisible(chunk, x, y, z, &dXY);
+                    set_block_visible(chunk, x, y, z, &dXY);
                 }
                 else if(x == 0 || x == 15 || z == 0 || z == 15)
                 {
                     // TODO: Add connection between 2 and more chunks, and erase sides where needed
                     
-                    SetBlockVisible(chunk, x, y, z, &dXY);
+                    set_block_visible(chunk, x, y, z, &dXY);
                 }
             }
         }
@@ -244,43 +146,43 @@ static struct Chunk* GenerateChunk(const struct Map* map, unsigned long long see
     return chunk;
 }
 
-struct Map* GenerateMap(const char* name, unsigned long long seed)
+struct Map* map_generate(const char* name, uint64_t seed)
 {
     // limit to a few chunks for now
     
     struct Map* map = calloc(1, sizeof(struct Map));
-    map->blocks = LoadBlocks("blocks/objects.atf").result_ptr;
+    map->blocks = unwrap(void*, blocks_load("blocks/objects.atf"));
     
-    for(unsigned int i = 0; i < 4; ++i)
+    for(uint32_t i = 0; i < 4; ++i)
     {
-        map->chunks = realloc(map->chunks, sizeof(struct Chunk*) * (map->chunkCount + 1));
-        map->chunks[map->chunkCount] = GenerateChunk(map, seed, map->chunkCount);
-        map->chunkCount++;
+        map->chunks = realloc(map->chunks, sizeof(struct Chunk*) * (map->chunk_count + 1));
+        map->chunks[map->chunk_count] = chunk_generate(map, seed, map->chunk_count);
+        map->chunk_count++;
     }
 
     return map;
 }
 
-void DrawMap(const struct Map* map, const struct Shader* shader)
+void map_draw(const struct Map* map, const struct Shader* shader)
 {
     glBindVertexArray(map->blocks->vao);
 
-    for(unsigned long long c = 0; c < map->chunkCount; ++c)
+    for(uint64_t c = 0; c < map->chunk_count; ++c)
     {
-        for(unsigned long long block_id = 1; block_id < BLOCK_COUNT; ++block_id) // zero is air
+        for(uint64_t block_id = 1; block_id < BLOCK_COUNT; ++block_id) // zero is air
         {
             if(!map->chunks[c]->block_render_counts[block_id])
                 continue;
 
             glBindTexture(GL_TEXTURE_CUBE_MAP, map->blocks->textures[block_id - 1]);
-            for(unsigned int i = 0; i < map->chunks[c]->block_render_counts[block_id]; ++i)
+            for(uint32_t i = 0; i < map->chunks[c]->block_render_counts[block_id]; ++i)
             {
                 glUniformMatrix4fv(shader->model_position, 1, GL_FALSE, &map->chunks[c]->models[block_id][i][0][0]);
-                glDrawElements(GL_TRIANGLES, map->blocks->drawCount, GL_UNSIGNED_INT, 0);
+                glDrawElements(GL_TRIANGLES, map->blocks->draw_count, GL_UNSIGNED_INT, 0);
             }
         }
     }
 }
 
-void SaveMap(struct Map* map);
-void DestroyMap(struct Map* map);
+void map_save(struct Map* map);
+void map_destroy(struct Map* map);

@@ -3,18 +3,11 @@
 
 #include "Shader.h"
 
-
-struct GLOption CreateShader(const char* vertex, const char* fragment)
-{
+struct GLOption shader_create(const char* vertex, const char* fragment) {
     FILE* fp = fopen(vertex, "rb");
     
-    if(!fp)
-    {
-        return (struct GLOption)
-        {
-            .ok = false,
-            .error_message = "Failed to load assets",
-        };
+    if(!fp) {
+        return Err("Failed to load assets");
     }
 
     fseek(fp, 0, SEEK_END);
@@ -27,14 +20,10 @@ struct GLOption CreateShader(const char* vertex, const char* fragment)
 
     fp = fopen(fragment, "rb");
 
-    if(!fp)
-    {
+    if(!fp) {
         free(vertex_str);
-        return (struct GLOption)
-        {
-            .ok = false,
-            .error_message = "Failed to load assets",
-        };
+        
+        return Err("Failed to load assets");
     }
 
 
@@ -49,16 +38,11 @@ struct GLOption CreateShader(const char* vertex, const char* fragment)
     GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
     GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 
-    if(!vertex_shader || !fragment_shader)
-    {
+    if(!vertex_shader || !fragment_shader) {
         free(fragment_str);
         free(vertex_str);
 
-        return (struct GLOption)
-        {
-            .ok = false,
-            .error_message = "Failed to load assets",
-        };
+        return Err("Failed to load assets");
     }
 
     glShaderSource(vertex_shader, 1, (const GLchar* const*)&vertex_str, 0);
@@ -67,16 +51,11 @@ struct GLOption CreateShader(const char* vertex, const char* fragment)
     int status;
     glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &status);
 
-    if(!status)
-    {
-        static char errorLog[1024];
-        glGetShaderInfoLog(vertex_shader, 1024, 0, errorLog);
+    if(!status) {
+        static char error_log[1024];
+        glGetShaderInfoLog(vertex_shader, 1024, 0, error_log);
 
-        return (struct GLOption)
-        {
-            .ok = false,
-            .error_message = errorLog,
-        };
+        return Err(error_log);
     }
 
     glShaderSource(fragment_shader, 1, (const GLchar* const*)&fragment_str, 0);
@@ -84,27 +63,17 @@ struct GLOption CreateShader(const char* vertex, const char* fragment)
 
     glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &status);
 
-    if(!status)
-    {
-        static char errorLog[1024];
-        glGetShaderInfoLog(fragment_shader, 1024, 0, errorLog);
+    if(!status) {
+        static char error_log[1024];
+        glGetShaderInfoLog(fragment_shader, 1024, 0, error_log);
 
-        return (struct GLOption)
-        {
-            .ok = false,
-            .error_message = errorLog,
-        };
+        return Err(error_log);
     }
 
     GLuint ProgramID = glCreateProgram();
     
-    if(!ProgramID)
-    {
-        return (struct GLOption)
-        {
-            .ok = false,
-            .error_message = "Failed to load assets",
-        };
+    if(!ProgramID) {
+        return Err("Failed to load assets");
     }
 
     glAttachShader(ProgramID, vertex_shader);
@@ -124,24 +93,17 @@ struct GLOption CreateShader(const char* vertex, const char* fragment)
     shader->view_position = glGetUniformLocation(ProgramID, "view");
     shader->projection_position = glGetUniformLocation(ProgramID, "projection");
 
-    return (struct GLOption)
-    {
-        .ok = true,
-        .result_ptr = shader,
-    };
+    return Ok(shader);
 }
 
-void ShaderSetUniformInt(GLuint shader, const char* name, int value)
-{
+void shader_set_uniform_int(GLuint shader, const char* name, int value) {
     glUniform1i(glGetUniformLocation(shader, name), value);
 }
 
-void ShaderSetUniformMat4(GLuint shader, const char* name, const float* value)
-{
+void shader_set_uniform_mat4(GLuint shader, const char* name, const float* value) {
     glUniformMatrix4fv(glGetUniformLocation(shader, name), 1, GL_FALSE, value);
 }
 
-void ShaderSetUniformMat4FromLocation(GLuint location, const float* value)
-{
+void shader_set_uniform_mat4_loc(GLuint location, const float* value) {
     glUniformMatrix4fv(location, 1, GL_FALSE, value);
 }

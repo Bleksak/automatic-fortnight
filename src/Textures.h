@@ -2,21 +2,20 @@
 #define _TEXTURES_H
 
 #include "GL.h"
-#include "include/cglm/cglm.h"
+#include <cglm/cglm.h>
 
-struct TexImageStrData
-{
-    char* PositiveX;
-    char* NegativeX;
-    char* PositiveY;
-    char* NegativeY;
-    char* PositiveZ;
-    char* NegativeZ;
+struct TexImageStrData {
+    char* xpos;
+    char* xneg;
+    char* ypos;
+    char* yneg;
+    char* zpos;
+    char* zneg;
 };
 
-struct GLOption LoadTextures(const char* filename);
-struct GLOption LoadBlockTextures(char* data[6]);
+struct GLOption textures_load(const char* filename);
+struct GLOption textures_block_load(char* data[6]);
 
-__attribute__((always_inline)) void BindTexture(GLuint* textures, unsigned int id);
+__attribute__((always_inline)) void texture_bind(GLuint* textures, unsigned int id);
 
 #endif

@@ -3,15 +3,14 @@
 
 #include "GL.h"
 
-struct Shader
-{
+struct Shader {
     GLuint id;
     GLint view_position, model_position, projection_position;
 };
 
-struct GLOption CreateShader(const char* vertex, const char* fragment);
-void ShaderSetUniformInt(GLuint shader, const char* name, int value);
-void ShaderSetUniformMat4(GLuint shader, const char* name, const float* value);
+struct GLOption shader_create(const char* vertex, const char* fragment);
+void shader_set_uniform_int(GLuint shader, const char* name, int value);
+void shader_set_uniform_mat4(GLuint shader, const char* name, const float* value);
 
 // void ShaderSetUniformMat4FromLocation(GLuint location, const float* value);
 
