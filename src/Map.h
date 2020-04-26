@@ -1,6 +1,4 @@
-#ifndef _MAP_H
-#define _MAP_H
-
+#pragma once
 #include "GL.h"
 
 #include <cglm/cglm.h>
@@ -39,4 +37,3 @@ void map_draw(const struct Map* map, const struct Shader* shader);
 // void SaveMap(struct Map* map);
 // void DestroyMap(struct Map* map);
 
-#endif

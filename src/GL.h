@@ -1,3 +1,8 @@
+#pragma once
+
+struct GLOption;
+struct GL;
+
 #include <stdbool.h>
 
 #include <glad/glad.h>
@@ -5,17 +10,20 @@
 
 #include <cglm/cglm.h>
 
+#include "Input.h"
 #include "Window.h"
 #include "Camera.h"
 #include "Shader.h"
-
-#ifndef _GL_H
-#define _GL_H
 
 #define unwrap(T, var) (T) (var.result)
 
 #define Ok(var) (struct GLOption) {.ok = true, .result = (void*) (uintptr_t)var,}
 #define Err(msg) (struct GLOption) {.ok = false, .error_message = msg,};
+
+
+struct InputUpdateInfo {
+    bool ascii_characters[1024];
+};
 
 struct GLOption {
     bool ok;
@@ -44,6 +52,7 @@ struct GL {
     
     enum GAME_STATE state;
 
+    struct InputUpdateInfo input_update_info;
     struct Shader* shader;
     struct Camera* camera;
 
@@ -53,5 +62,3 @@ struct GL {
 
 void game_change_state(struct GL* gl, enum GAME_STATE state);
 struct GLOption gl_init(const char* game_name);
-
-#endif

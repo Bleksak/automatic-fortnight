@@ -1,10 +1,7 @@
-#ifndef _BLOCKS_H
-#define _BLOCKS_H
-
+#pragma once
 #include "Textures.h"
 
-struct Blocks
-{
+struct Blocks {
     unsigned long long* ids;
     char** names;
     GLuint vao;
@@ -20,4 +17,3 @@ struct Blocks
 struct GLOption blocks_load(const char* file);
 void block_draw(struct Blocks* blocks, unsigned int id);
 
-#endif

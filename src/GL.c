@@ -7,15 +7,14 @@
 
 #include <cglm/cglm.h>
 
-void game_change_state(struct GL* gl, enum GAME_STATE state)
-{
+void game_change_state(struct GL* gl, enum GAME_STATE state) {
     gl->state = state;
 
     switch(state) {
         case GAME: {
-            glfwSetKeyCallback(gl->window, camera_keyboard_callback);
-            glfwSetCursorPosCallback(gl->window, camera_mouse_callback);
-            glfwSetMouseButtonCallback(gl->window, camera_mouse_button_callback);
+            glfwSetKeyCallback(gl->window, game_keyboard_callback);
+            glfwSetCursorPosCallback(gl->window, game_mouse_callback);
+            glfwSetMouseButtonCallback(gl->window, game_mouse_button_callback);
 
             glfwSetInputMode(gl->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
             
@@ -24,9 +23,9 @@ void game_change_state(struct GL* gl, enum GAME_STATE state)
         } break;
 
         case INVENTORY: {
-            glfwSetKeyCallback(gl->window, GameKeyCallbackFun);
-            glfwSetCursorPosCallback(gl->window, 0);
-            glfwSetMouseButtonCallback(gl->window, GameMouseButtonCallbackFun);
+            // glfwSetKeyCallback(gl->window, GameKeyCallbackFun);
+            // glfwSetCursorPosCallback(gl->window, 0);
+            // glfwSetMouseButtonCallback(gl->window, GameMouseButtonCallbackFun);
 
             glfwSetInputMode(gl->window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
         } break;

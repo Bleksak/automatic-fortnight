@@ -4,11 +4,6 @@
 #include <string.h>
 #include <math.h>
 
-static void closef(FILE** fp) {
-    if(*fp)
-        fclose(*fp);
-}
-
 struct GenBlockPosition {
     uint32_t block_id;
     uint32_t maxY, minY;
@@ -146,15 +141,13 @@ static struct Chunk* chunk_generate(const struct Map* map, uint64_t seed, int64_
     return chunk;
 }
 
-struct Map* map_generate(const char* name, uint64_t seed)
-{
+struct Map* map_generate(const char* name, uint64_t seed) {
     // limit to a few chunks for now
     
     struct Map* map = calloc(1, sizeof(struct Map));
     map->blocks = unwrap(void*, blocks_load("blocks/objects.atf"));
     
-    for(uint32_t i = 0; i < 4; ++i)
-    {
+    for(uint32_t i = 0; i < 4; ++i) {
         map->chunks = realloc(map->chunks, sizeof(struct Chunk*) * (map->chunk_count + 1));
         map->chunks[map->chunk_count] = chunk_generate(map, seed, map->chunk_count);
         map->chunk_count++;
@@ -163,20 +156,16 @@ struct Map* map_generate(const char* name, uint64_t seed)
     return map;
 }
 
-void map_draw(const struct Map* map, const struct Shader* shader)
-{
+void map_draw(const struct Map* map, const struct Shader* shader) {
     glBindVertexArray(map->blocks->vao);
 
-    for(uint64_t c = 0; c < map->chunk_count; ++c)
-    {
-        for(uint64_t block_id = 1; block_id < BLOCK_COUNT; ++block_id) // zero is air
-        {
+    for(uint64_t c = 0; c < map->chunk_count; ++c) {
+        for(uint64_t block_id = 1; block_id < BLOCK_COUNT; ++block_id) { // zero is air
             if(!map->chunks[c]->block_render_counts[block_id])
                 continue;
 
             glBindTexture(GL_TEXTURE_CUBE_MAP, map->blocks->textures[block_id - 1]);
-            for(uint32_t i = 0; i < map->chunks[c]->block_render_counts[block_id]; ++i)
-            {
+            for(uint32_t i = 0; i < map->chunks[c]->block_render_counts[block_id]; ++i) {
                 glUniformMatrix4fv(shader->model_position, 1, GL_FALSE, &map->chunks[c]->models[block_id][i][0][0]);
                 glDrawElements(GL_TRIANGLES, map->blocks->draw_count, GL_UNSIGNED_INT, 0);
             }
